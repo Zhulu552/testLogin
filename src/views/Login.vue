@@ -17,7 +17,7 @@
 
         <!-- 密码 -->
         <FormItem  prop="password" class="pasItem">
-          <!-- 动态绑定type -->
+          <!-- 动态绑定type1111 -->
           <Input :type="this.pwdtype" prefix="md-lock" v-model="loginFrom.password"></Input>
           <!-- 密码的眼睛图标 -->
           <Icon type="md-eye" :class="{'eyeoff':!flagEyes}" class="iconEye" @click="eyes"/>
