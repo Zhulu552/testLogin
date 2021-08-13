@@ -15,7 +15,7 @@
           <Input type="text" prefix="ios-contact" v-model="loginFrom.username"></Input>
         </FormItem>
 
-        <!-- 密码 -->
+        <!-- 密码 --1>
         <FormItem  prop="password" class="pasItem">
           <!-- 动态绑定type1111 -->
           <Input :type="this.pwdtype" prefix="md-lock" v-model="loginFrom.password"></Input>
