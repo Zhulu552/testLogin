@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue</title>
+    <style>
+        #app{
+            width: 80%;
+            height: 550px;
+            margin: auto;
+            margin-top: 20px;
+            padding: 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        #table{
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1150px;
+        }
+        td{
+            border: solid 1px black;
+        }
+        thead{
+            color: #909399;
+            font-weight: 700;
+            height: 60px;
+        }
+        tr:hover{
+            background-color: #eaecf0;
+        }
+        tr:active{
+            background-color: rgb(233,244,255);
+        }
+        tbody{
+            color:#606266;
+        }
+        tbody input{
+            border: none;
+            width: 70%; 
+            text-align: center; 
+            color:#606266;
+            font-size: 14px;
+        }
+        tr{
+            font-size: 14px;
+            height: 50px;
+        }
+        th,td{
+            border: 1px solid #dbdee4;
+            text-align: center;
+        }
+        #button{
+            width: 190px;
+        }
+        td button{
+            border: none;
+            border-radius: 5px;
+            color: white;
+            width: 50px;
+            height: 25px;
+            font-size: 10px;
+            margin: 0 5px 0 5px;
+        }
+        .dele{
+            background-color: #ff4949;
+        }
+        .edit{
+            background-color: #1890ff;
+        }
+        .pub{
+            background-color: #13ce66;
+        }
+        #page{
+            float: left;
+        }
+        #other{
+            position: absolute;
+            bottom:0px;
+        }
+        #sum{
+            float: left;
+            margin: 24px 10px 18px 10px;
+            font-size: 13px;
+            color:#606266;
+        }
+        #before{
+            float:left
+        }
+        #other ul{
+            float: left;
+            margin:21px 0;
+            padding: 0;
+        }
+        li{
+            list-style: none;
+            display: inline-block;
+            margin:0 5px;
+            padding: 5px 0 0 0;
+            width: 28px;
+            height: 24px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            background-color: #f4f4f5;
+            color:#606266;
+            border-radius: 2px;
+        }
+        /* 页码颜色选中变蓝 */
+        .active {                           
+            background-color: #1890ff;
+            color: white;
+        }
+        /* 点击复选框显示隐藏 */
+        .tableNone{
+            display: none;
+        }
+        /* 点击编辑的input显示隐藏 */
+        .flagEdit{
+            display: none;
+        }
+        #after{
+            float: left;
+        }
+        #other button{
+            float: left;
+            width: 28px;
+            height: 28px;
+            margin: 21px 10px;
+            border: none;
+            background-color: #f4f4f5;
+            color:#606266;
+            font-weight: 600;
+        }
+        #toPage{
+            width: 38px;
+            height: 22px;
+            border: 1px solid #dbdee4;
+            border-radius: 2px;
+        }
+        #to{
+            float: left;
+            width: 95px;
+            height: 28px;
+            margin: 24px 10px 18px 10px;
+            border: none;
+            color:#606266;
+            font-size: 13px;
+            font-weight: 400;
+        }
+        #check{
+            width: 90%;
+            height: 20px;
+            margin: auto;
+            margin-bottom: 20px;
+            min-width: 1150px;
+            margin-top: 20px;
+            color:#606266;
+        }
+        #check span{
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<script src="vue.js"></script>
+<body>
+    <div id="app">
+        <div id="check">
+            <span  v-for="(item,k,index) in theadDate">
+                <input type="checkbox" @change="changerow(k,index)" checked="checked">
+                {{k}}
+            </span>
+        </div>
+        <table id="table">
+            <thead>
+                <td v-for="(item,k,index) in theadDate" :class="{'tableNone':!flagTable.includes(k)}">{{k}}</td>
+                <td>操作</td>
+            </thead>
+            <tbody>
+                <tr v-for="(item,index) in tableData()">
+                    <td v-for="(value,key,i) in item" :class="{'tableNone':!flagTable.includes(key)}">
+                        <!-- 是不是可以用v-if，v-else -->
+                        <div :class="{'flagEdit':!flagedit[index]}">{{value}}</div>
+                        <input type="text" :class="{'flagEdit':flagedit[index]}" v-model=inputInit[key]>
+                    </td>
+                    <td id="button">
+                        <button @click='edit(index)' class='edit'>编辑</button>
+                        <button @click='pub(index)' class='pub'>发布</button>
+                        <button @click='dele(index)' class='dele'>删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div id="other">
+            <span id="sum">共{{page.total}}条</span>
+            <span id="page">
+                <button id="before" @click="before()">&lt;</button>
+                <ul>
+                    <li :class="{'active':page.pageIndex==n}" :key="n" v-for="n in Math.ceil(page.total/page.pageSize)" @click="onPage(n)">{{n}}</li>
+                </ul>
+                <button id="after" @click="after()">&gt;</button>
+            </span>
+            <span id="to">
+                前往:
+                <input type="text" id="toPage" v-model="value" @blur="toPage(value)" placeholder="1">
+                页
+            </span>
+        </div>
+    </div>
+    <script>
+        const App = new Vue({
+            el:"#app",
+            data:{
+                initData:[],
+                page: {
+                    pageIndex: 1,           //此时的页码
+                    total:0,               //总条数,默认值
+                    pageSize: 5             //每一页条数
+                },
+                flagTable:[],               //多选框设置显示隐藏这一列，的flag
+                flagedit:[],                //编辑时input框的显示隐藏flag
+                inputInit:{},               //渲染编辑时input框的数据
+                theadDate:{}                //渲染头部和多选框的数据
+            },
+            created:function () {
+                this.getData();          //vue实例之后运行到这里就调用函数获取后台数据
+            },
+            methods:{
+                getData: function() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("post","http://egova.top:2930/mock/1034/unity/school/keyPerson/{type}/page");
+                    xhr.send();
+                    xhr.onreadystatechange = function() {
+                        if(xhr.readyState == 4) {
+                            if(xhr.status == 200) {
+                                // 获取总数据initdata
+                                App.initData = JSON.parse(xhr.response).result;
+                                // 获取两个flag控制显示隐藏，多选框点击之后的显示隐藏+修改时候input框显示隐藏
+                                // i是第一项数据对象的每一个key值，例如id，name
+                                App.theadDate = JSON.parse(xhr.response).result[0];
+                                App.page.total = App.initData.length
+                                console.log(App.page.total)
+                                for(var i in JSON.parse(xhr.response).result[0]) {
+                                    App.flagTable.push(i);
+                                    App.flagedit.push(1);
+                                }
+                            }
+                        }
+                    }
+                },
+                
+                //切割数据，变成每一页的数据，分页的时候每一页的数据，例如第一页0~4
+                tableData(){
+                    var star = this.page.pageSize*(this.page.pageIndex-1);
+                    var end = this.page.pageSize*this.page.pageIndex;
+                    return this.initData.slice(star,end)
+                },
+                
+                // 页码按钮功能，传入此时的li下标，赋值给页码数据
+                onPage: function(n) {
+                    this.page.pageIndex = n;
+                },
+                
+                // 上一页功能
+                before: function() {
+                    if(this.page.pageIndex>1) {
+                        this.page.pageIndex--;
+                    }
+                },
+                
+                // 下一页功能
+                after: function() {
+                    // 计算一个页码最大值pagenum
+                    var pagemax = Math.ceil(this.page.total/this.page.pageSize)
+                    if(this.page.pageIndex< pagemax) {
+                        this.page.pageIndex++;
+                    }
+                },
+                
+                // 页面跳转功能
+                toPage: function(value) {
+                    // 还是页码最大值，传入用户输入的value
+                    var pagemax = Math.ceil(this.page.total/this.page.pageSize)
+                    if(value<= pagemax&&value>=1) {
+                        this.page.pageIndex = value;
+                    }
+
+                    else {
+                        alert("请输入正确页码~~~")
+                    }
+                    
+                },
+                
+                // 多选框功能，传入k：此时选到的key值，index：0~8，类似是key值的下标
+                changerow: function(k,index) {
+                    // 如果flag里面有这个key，则进入删除程序；没有这一项（说明之前删了），则添加
+                    if(this.flagTable.includes(k)) {
+                        for (var i = 0; i < this.flagTable.length; i++) {  
+                            // 循环设置此时key值在flagtable中的位置下标i（由于有删除，所以会变动）
+                            if (this.flagTable[i] == k)
+                            // 根据下标i删除这一项key值
+                            this.flagTable.splice(i,1)
+                        } 
+                    }
+                    else{
+                        // 如果此时点击的key值下标大于整个flag长度（因为前面可能删太多内容了，flag随时变化长度），则在flag的最后添加这个key
+                        if(index>=this.flagTable.length) {
+                            this.flagTable.push(k)
+                        }
+                        // else，那就再key值flag下标位置添加上去
+                        else {
+                            this.flagTable.splice(index,0,k)
+                        }
+
+                    }
+                },
+                
+                // 删除功能，传入点击的这一行的index，比如第二行，2
+                dele: function(index) {
+                    // 由于翻页之后index始终是0~4，而我们要删除的是初始的数据，不是分页的数据，所以要恢复回原来的index行标
+                    var indexd = this.page.pageSize*(this.page.pageIndex-1)+index;
+                    this.initData.splice(indexd,1);
+                    this.page.total--
+                    // 添加一个判断，如果在第2，3，4，5等页，那么这一页删完之后，跳转到前一页
+                    if(this.tableData().length == 0&&this.page.pageIndex>1) {
+                        this.page.pageIndex--
+                    }
+                },
+                
+                //编辑功能，传入此时的下标，表示是哪一行，同理，求出真正在初始数据中的下标indexe
+                edit: function(index) {
+                    // this.flagedit[index]是一个flag，用来限制，只有点击这一行的编辑之后，才能点击发布。同理，默认第一次可以点击编辑，之后也需要先发布按钮（不能重复点击编辑）
+                    if(this.flagedit[index]) {
+                        var indexe = this.page.pageSize*(this.page.pageIndex-1) + index
+                        for(var i in this.tableData()[index]) {
+                        // 把这一行的每一个key，value键值对 添加给inputinit
+                        this.inputInit[i]=this.tableData()[index][i]
+                        }
+                        // 控制这一行的每个单元格是否显示input编辑
+                        this.flagedit.splice(index,1,0);
+                    }
+                },
+
+                // 发布功能
+                pub: function(index) {
+                    if(!this.flagedit[index]) {
+                        var indexp = this.page.pageSize*(this.page.pageIndex-1)+index
+                        // 把inputinit添加给初始数据对应的位置
+                        this.initData.splice(indexp,1,this.inputInit)
+                        this.flagedit.splice(index,1,1);
+                    }
+                },
+            }
+        })
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+<!-- 接口数据
+{
+  "hasError": false,
+  "result": [
+    {
+      "id": "1",
+      "name": "张三",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "2",
+      "name": "李四",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "3",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "4",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "5",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "6",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "7",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "8",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "9",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "10",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "11",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    },
+    {
+      "id": "12",
+      "name": "王五",
+      "gender": "男",
+      "birthday": "2021-03-22",
+      "type": "刑满释放人员",
+      "school": "聊城市第一中学",
+      "image": "@image",
+      "longitude": 116.16546674553679,
+      "latitude": 35.47524632030706
+    }
+  ],
+  "message": null,
+  "messageList": [],
+  "tag": null,
+  "totalCount": 3
+} -->

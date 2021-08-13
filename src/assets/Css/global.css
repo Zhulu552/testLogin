@@ -1,0 +1,29 @@
+/* 在main入口文件中导入全局样式 */
+html,body,#app{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+/* 媒体查询，举例：在屏幕上，并且，最大宽度为800px。则执行里面的语句，body背景色为红色
+@media screen and (max-width :800px) {
+    body{
+        background-color:red;
+    }
+} */
+
+
+/* 手机
+@media screen and (max-width: 768px) {
+
+}
+平板
+@media screen and (min-width: 768px)  and (max-width :992px){
+    
+}
+电脑
+@media screen and (min-width: 992px) {
+    
+} */
